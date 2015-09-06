@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import re
+
+def filter_shortcuts(shortcuts, regex):
+    """Filter shortcuts that match the supplied regular expression"""
+    filtered_shortcuts = [x for x in shortcuts if regex.match(x)]
+    return filtered_shortcuts
+ 
+def load_shortcuts():
+    shortcuts = [ '/home/mosaq/tmp/rust',
+                  '/home/shared/programming/rust',
+                  '/srv/tftp/pxelinux.0',
+                  '/home/shared/programming/python',
+                  '/home/mosaq/.vim-sessions',
+                  '/etc/systemd/system',
+                  '/etc/fstab',
+                ]
+
+    return sorted(shortcuts)
+
+def print_shortcuts(shortcuts):
+    print('\n'.join(shortcuts))
+
+if __name__ == '__main__':
+    rust_regex = re.compile('^.+/rust$')
+    print_shortcuts(filter_shortcuts(load_shortcuts(),rust_regex))
