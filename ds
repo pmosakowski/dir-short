@@ -17,6 +17,11 @@ def load_shortcuts():
 def save_shortcuts(shortcuts):
     pass
 
+def bookmark_directory(shortcuts, directory, nickname=None):
+    """Adds 'directory' to bookmark list with optional 'nickname'"""
+    shortcuts.append(directory)
+    save_shortcuts(shortcuts)
+
 def match_to_regex(match):
     """Convert matcher string into a regex"""
     return re.compile(r'^.*rust.*$')
