@@ -2,11 +2,6 @@
 
 import re
 
-def filter_shortcuts(shortcuts, regex):
-    """Filter shortcuts that match the supplied regular expression"""
-    filtered_shortcuts = [x for x in shortcuts if regex.match(x)]
-    return filtered_shortcuts
- 
 def load_shortcuts():
     shortcuts = [ '/home/mosaq/tmp/rust',
                   '/home/shared/programming/rust',
@@ -18,6 +13,14 @@ def load_shortcuts():
                 ]
 
     return sorted(shortcuts)
+
+def save_shortcuts(shortcuts):
+    pass
+
+def filter_shortcuts(shortcuts, regex):
+    """Filter shortcuts that match the supplied regular expression"""
+    filtered_shortcuts = [x for x in shortcuts if regex.match(x)]
+    return filtered_shortcuts
 
 def print_shortcuts(shortcuts):
     print('\n'.join(shortcuts))
