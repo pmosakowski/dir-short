@@ -12,7 +12,9 @@ def find(bookmarks, match):
     print("filter: " + match)
 
 def save(bookmarks, bookmark):
-    print("save: " + bookmark)
+    cwd = os.getcwd()
+    print("save: [" + bookmark + "] " + cwd)
+    bookmark_directory(bookmarks, cwd, bookmark)
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -53,11 +55,11 @@ def save_shortcuts(bookmarks):
     with open(bookmark_path,'w',newline='') as bookmark_file:
         bookmark_writer = csv.writer(bookmark_file, delimiter=delimiter, quoting=csv.QUOTE_MINIMAL)
         for bookmark in bookmarks:
-            bookmark_writer.writerows(bookmarks)
+            bookmark_writer.writerow(bookmark)
 
 def bookmark_directory(bookmarks, directory, nickname=''):
     """Adds 'directory' to bookmark list with optional 'nickname'"""
-    bookmark = (directory,nickname)
+    bookmark = (nickname,directory)
     bookmarks.append(bookmark)
     save_shortcuts(bookmarks)
 
