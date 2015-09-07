@@ -26,10 +26,11 @@ def save_shortcuts(bookmarks):
         for bookmark in bookmarks:
             bookmark_writer.writerows(bookmarks)
 
-def bookmark_directory(shortcuts, directory, nickname=None):
+def bookmark_directory(bookmarks, directory, nickname=''):
     """Adds 'directory' to bookmark list with optional 'nickname'"""
-    shortcuts.append(directory)
-    save_shortcuts(shortcuts)
+    bookmark = (directory,nickname)
+    bookmarks.append(bookmark)
+    save_shortcuts(bookmarks)
 
 def match_to_regex(match):
     """Convert matcher string into a regex"""
