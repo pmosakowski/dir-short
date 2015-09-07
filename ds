@@ -17,8 +17,16 @@ def load_shortcuts():
 def save_shortcuts(shortcuts):
     pass
 
-def filter_shortcuts(shortcuts, regex):
-    """Filter shortcuts that match the supplied regular expression"""
+def match_to_regex(match):
+    """Convert matcher string into a regex"""
+    return re.compile(r'^.*rust.*$')
+
+def filter_shortcuts(shortcuts, match):
+    """Filter shortcuts that match the supplied string. Every space
+        in the string matches any group of one or more characters i.e.
+        'tmp py' matches '/home/user/tmp/python/projects'"""
+    regex = match_to_regex(match)
+
     filtered_shortcuts = [x for x in shortcuts if regex.match(x)]
     return filtered_shortcuts
 
@@ -26,5 +34,4 @@ def print_shortcuts(shortcuts):
     print('\n'.join(shortcuts))
 
 if __name__ == '__main__':
-    rust_regex = re.compile('^.+/rust$')
-    print_shortcuts(filter_shortcuts(load_shortcuts(),rust_regex))
+    print_shortcuts(filter_shortcuts(load_shortcuts(),'rust'))
