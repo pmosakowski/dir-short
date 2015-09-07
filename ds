@@ -39,17 +39,17 @@ def parse_args():
     return operation, argument
 
 def load_shortcuts():
-    bookmarks = []
+    bookmarks = set()
 
     try:
         with open(bookmark_path,'r') as bookmark_file:
             bookmark_reader = csv.reader(bookmark_file, delimiter=delimiter)
             for bookmark in bookmark_reader:
-                bookmarks.append((bookmark[0],bookmark[1]))
+                bookmarks.add((bookmark[0],bookmark[1]))
     except FileNotFoundError:
         pass
 
-    return sorted(bookmarks)
+    return bookmarks
 
 def save_shortcuts(bookmarks):
     with open(bookmark_path,'w',newline='') as bookmark_file:
@@ -60,7 +60,7 @@ def save_shortcuts(bookmarks):
 def bookmark_directory(bookmarks, directory, nickname=''):
     """Adds 'directory' to bookmark list with optional 'nickname'"""
     bookmark = (nickname,directory)
-    bookmarks.append(bookmark)
+    bookmarks.add(bookmark)
     save_shortcuts(bookmarks)
 
 def match_to_regex(match):
