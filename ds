@@ -1,21 +1,30 @@
 #!/usr/bin/env python
 
+import csv
 import re
+import os
+
+bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
+delimiter = ':'
 
 def load_shortcuts():
-    shortcuts = [ '/home/mosaq/tmp/rust',
-                  '/home/shared/programming/rust',
-                  '/srv/tftp/pxelinux.0',
-                  '/home/shared/programming/python',
-                  '/home/mosaq/.vim-sessions',
-                  '/etc/systemd/system',
-                  '/etc/fstab',
-                ]
+    bookmarks = []
 
-    return sorted(shortcuts)
+    try:
+        with open(bookmark_path,'r') as bookmark_file:
+            bookmark_reader = csv.reader(bookmark_file, delimiter=delimiter)
+            for bookmark in bookmark_reader:
+                bookmarks.append((bookmark[0],bookmark[1]))
+    except FileNotFoundError:
+        pass
 
-def save_shortcuts(shortcuts):
-    pass
+    return sorted(bookmarks)
+
+def save_shortcuts(bookmarks):
+    with open(bookmark_path,'w',newline='') as bookmark_file:
+        bookmark_writer = csv.writer(bookmark_file, delimiter=delimiter, quoting=csv.QUOTE_MINIMAL)
+        for bookmark in bookmarks:
+            bookmark_writer.writerows(bookmarks)
 
 def bookmark_directory(shortcuts, directory, nickname=None):
     """Adds 'directory' to bookmark list with optional 'nickname'"""
@@ -31,12 +40,14 @@ def filter_shortcuts(shortcuts, match):
         in the string matches any group of one or more characters i.e.
         'tmp py' matches '/home/user/tmp/python/projects'"""
     regex = match_to_regex(match)
-
-    filtered_shortcuts = [x for x in shortcuts if regex.match(x)]
+    filtered_shortcuts = [x for x in shortcuts if regex.match(x[1])]
     return filtered_shortcuts
 
 def print_shortcuts(shortcuts):
-    print('\n'.join(shortcuts))
+    for x in shortcuts:
+        print('{}\t{}'.format(x[0],x[1]))
 
 if __name__ == '__main__':
-    print_shortcuts(filter_shortcuts(load_shortcuts(),'rust'))
+    bmarks = load_shortcuts()
+
+    print_shortcuts(filter_shortcuts(bmarks,'rust'))
