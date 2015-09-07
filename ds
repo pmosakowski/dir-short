@@ -8,11 +8,11 @@ import os
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
 
-def find():
-    pass
+def find(bookmarks, match):
+    print("filter: " + match)
 
-def save():
-    pass
+def save(bookmarks, bookmark):
+    print("save: " + bookmark)
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -22,7 +22,19 @@ def parse_args():
             help='bookmark current directory with optional nickname')
     group.add_argument('filter', nargs='?',
             help='string that saved directories will be matched against')
-    parser.parse_args()
+    args = parser.parse_args()
+
+    if args.save:
+        operation = save
+        argument = args.save
+    elif args.filter:
+        operation = find
+        argument = args.filter
+    else:
+        exit(1)
+        # here goes interactive operation
+
+    return operation, argument
 
 def load_shortcuts():
     bookmarks = []
@@ -66,8 +78,9 @@ def print_shortcuts(shortcuts):
         print('{}\t{}'.format(x[0],x[1]))
 
 if __name__ == '__main__':
-    parse_args()
+    operation, argument = parse_args()
 
-    bmarks = load_shortcuts()
+    bookmarks = load_shortcuts()
 
-    print_shortcuts(filter_shortcuts(bmarks,'rust'))
+    operation(bookmarks, argument)
+    print_shortcuts(filter_shortcuts(bookmarks,'rust'))
