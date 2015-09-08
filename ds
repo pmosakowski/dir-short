@@ -5,6 +5,24 @@ import csv
 import re
 import os
 
+from curses import wrapper
+
+class InteractiveSearch:
+    def __init__(self, bookmarks, none=None):
+        self.bookmarks = bookmarks
+        wrapper(self.main)
+
+    def main(self, screen):
+        screen.clear()
+
+        i = 0
+        for bookmark in bookmarks:
+            screen.addstr(i, 0, '[{}]\t{}'.format(bookmark[0], bookmark[1]))
+            i += 1
+
+        screen.refresh()
+        screen.getkey()
+
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
 
@@ -38,8 +56,9 @@ def parse_args():
         operation = print_shortcuts
         argument = None
     else:
-        exit(0)
         # here goes interactive operation
+        operation = InteractiveSearch
+        argument = None
 
     return operation, argument
 
