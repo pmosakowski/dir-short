@@ -81,7 +81,7 @@ def filter_shortcuts(shortcuts, match):
     return filtered_shortcuts
 
 def print_shortcuts(shortcuts, none=None):
-    for x in shortcuts:
+    for x in sorted(shortcuts):
         print('{}\t{}'.format(x[0],x[1]))
 
 if __name__ == '__main__':
