@@ -9,7 +9,7 @@ bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
 
 def find(bookmarks, match):
-    print("filter: " + match)
+    print_shortcuts(filter_shortcuts(bookmarks, match))
 
 def save(bookmarks, bookmark):
     cwd = os.getcwd()
