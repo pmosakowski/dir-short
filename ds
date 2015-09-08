@@ -69,8 +69,11 @@ def bookmark_directory(bookmarks, directory, nickname=''):
     save_shortcuts(bookmarks)
 
 def match_to_regex(match):
-    """Convert matcher string into a regex"""
-    return re.compile(r'^.*rust.*$')
+    """Convert matcher string into a regex. It matches any group of
+       characters in place of whitespace"""
+    match_groups = match.split()
+    match_string = r'.*'.join(match_groups)
+    return re.compile(r'^.*{}.*$'.format(match_string))
 
 def filter_shortcuts(shortcuts, match):
     """Filter shortcuts that match the supplied string. Every space
