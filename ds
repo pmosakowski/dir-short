@@ -9,19 +9,31 @@ from curses import wrapper
 
 class InteractiveSearch:
     def __init__(self, bookmarks, none=None):
-        self.bookmarks = bookmarks
+        self.bookmarks = sorted(bookmarks)
         wrapper(self.main)
 
     def main(self, screen):
-        screen.clear()
+        self.screen = screen
+        self.lines, self.cols = self.screen.getmaxyx()
+        self.update_screen()
+        self.screen.getkey()
 
+    def update_screen(self):
+        self.screen.clear()
+        self.display_bookmarks()
+
+        self.screen.refresh()
+
+    def display_bookmarks(self):
         i = 0
-        for bookmark in bookmarks:
-            screen.addstr(i, 0, '[{}]\t{}'.format(bookmark[0], bookmark[1]))
-            i += 1
+        for bookmark in self.bookmarks:
+            if len(bookmark[0]) < 8:
+                tabs = 2
+            else:
+                tabs = 1
 
-        screen.refresh()
-        screen.getkey()
+            self.screen.addstr(self.lines - len(bookmarks) - 1  + i, 0, '[{}]{}{}'.format(bookmark[0], '\t'*tabs, bookmark[1]))
+            i += 1
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
