@@ -77,10 +77,10 @@ def match_to_regex(match):
 
 def filter_shortcuts(shortcuts, match):
     """Filter shortcuts that match the supplied string. Every space
-        in the string matches any group of one or more characters i.e.
-        'tmp py' matches '/home/user/tmp/python/projects'"""
+       in the string matches any group of one or more characters i.e.
+       'tmp py' matches '/home/user/tmp/python/projects'"""
     regex = match_to_regex(match)
-    filtered_shortcuts = [x for x in shortcuts if regex.match(x[1])]
+    filtered_shortcuts = [x for x in shortcuts if regex.match(x[0]) or regex.match(x[1])]
     return filtered_shortcuts
 
 def print_shortcuts(shortcuts, none=None):
