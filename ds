@@ -5,24 +5,50 @@ import csv
 import re
 import os
 
-from curses import wrapper
+import curses
 
 class InteractiveSearch:
     def __init__(self, bookmarks, none=None):
         self.bookmarks = sorted(bookmarks)
-        wrapper(self.main)
+        self.line_buffer = []
+        curses.wrapper(self.main)
 
     def main(self, screen):
+        curses.nonl()
         self.screen = screen
         self.lines, self.cols = self.screen.getmaxyx()
-        self.update_screen()
-        self.screen.getkey()
+
+        done = False
+        while not done:
+            self.update_screen()
+            ch = self.screen.getch()
+            line, done = self.process_key(ch)
+
+    def process_key(self, ch):
+        KEY_ENTER = 13
+        KEY_BACKSPACE = 127
+
+        done = False
+        if ch == KEY_ENTER:
+            done = True
+        elif ch == KEY_BACKSPACE:
+            del self.line_buffer[-1]
+        else:
+            self.line_buffer.append(chr(ch))
+
+        return self.line_buffer, done
+
 
     def update_screen(self):
         self.screen.clear()
+
         self.display_bookmarks()
+        self.display_line_buffer()
 
         self.screen.refresh()
+
+    def display_line_buffer(self):
+        self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
 
     def display_bookmarks(self):
         i = 0
