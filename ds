@@ -33,10 +33,29 @@ class InteractiveSearch:
             done = True
         elif ch == KEY_BACKSPACE:
             del self.line_buffer[-1]
-        else:
+        elif self.char_allowed(ch):
             self.line_buffer.append(chr(ch))
 
         return self.line_buffer, done
+
+    @staticmethod
+    def char_allowed(ch):
+        allowed = False
+
+        if ch >= 65 and ch<= 90:
+            # uppercase letters
+            allowed = True
+        elif ch >= 97 and ch <= 122:
+            # lowercase letters
+            allowed = True
+        elif ch >= 48 and ch <= 57:
+            # digits
+            allowed = True
+        elif ch == 32 or ch == 45 or ch == 95:
+            # dash, space or underscore
+            allowed = True
+
+        return allowed
 
 
     def update_screen(self):
