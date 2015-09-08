@@ -20,6 +20,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
             description='Small utility for quickly navigating between directories')
     group = parser.add_mutually_exclusive_group()
+    group.add_argument('-l','--list', action='store_true',
+            help='list bookmarked directories')
     group.add_argument('-s','--save', nargs='?', metavar='nickname',
             help='bookmark current directory with optional nickname')
     group.add_argument('filter', nargs='?',
@@ -32,8 +34,11 @@ def parse_args():
     elif args.filter:
         operation = find
         argument = args.filter
+    elif args.list:
+        operation = print_shortcuts
+        argument = None
     else:
-        exit(1)
+        exit(0)
         # here goes interactive operation
 
     return operation, argument
@@ -75,7 +80,7 @@ def filter_shortcuts(shortcuts, match):
     filtered_shortcuts = [x for x in shortcuts if regex.match(x[1])]
     return filtered_shortcuts
 
-def print_shortcuts(shortcuts):
+def print_shortcuts(shortcuts, none=None):
     for x in shortcuts:
         print('{}\t{}'.format(x[0],x[1]))
 
@@ -85,4 +90,3 @@ if __name__ == '__main__':
     bookmarks = load_shortcuts()
 
     operation(bookmarks, argument)
-    print_shortcuts(filter_shortcuts(bookmarks,'rust'))
