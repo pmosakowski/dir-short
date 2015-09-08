@@ -25,13 +25,19 @@ class InteractiveSearch:
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
+bash_null_cmd = ':'
+bash_cd_cmd = 'cd "{}"'
+
+def bash_print(string):
+    bash_print_cmd = 'printf "{}\\n";'
+    print(bash_print_cmd.format(string))
 
 def find(bookmarks, match):
     print_shortcuts(filter_shortcuts(bookmarks, match))
 
 def save(bookmarks, bookmark):
     cwd = os.getcwd()
-    print("save: [" + bookmark + "] " + cwd)
+    bash_print("saved [" + bookmark + "] " + cwd)
     bookmark_directory(bookmarks, cwd, bookmark)
 
 def parse_args():
@@ -103,8 +109,13 @@ def filter_shortcuts(shortcuts, match):
     return filtered_shortcuts
 
 def print_shortcuts(shortcuts, none=None):
-    for x in sorted(shortcuts):
-        print('{}\t{}'.format(x[0],x[1]))
+    for shortcut in sorted(shortcuts):
+        if len(shortcut[0]) < 8:
+            tabs = 2
+        else:
+            tabs = 1
+
+        bash_print('{}{}{}'.format(shortcut[0], '\\t'*tabs, shortcut[1]))
 
 if __name__ == '__main__':
     operation, argument = parse_args()
