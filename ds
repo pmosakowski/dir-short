@@ -70,14 +70,16 @@ class InteractiveSearch:
         self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
 
     def display_bookmarks(self):
-        i = 0
-        for bookmark in self.bookmarks:
+        filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
+        num_bookmarks = len(filtered_bookmarks)
+        i = self.lines - num_bookmarks - 1
+        for bookmark in filtered_bookmarks:
             if len(bookmark[0]) < 8:
                 tabs = 2
             else:
                 tabs = 1
 
-            self.screen.addstr(self.lines - len(bookmarks) - 1  + i, 0, '[{}]{}{}'.format(bookmark[0], '\t'*tabs, bookmark[1]))
+            self.screen.addstr(i, 0, '[{}]{}{}'.format(bookmark[0], '\t'*tabs, bookmark[1]))
             i += 1
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
