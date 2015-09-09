@@ -12,6 +12,7 @@ class InteractiveSearch:
         self.bookmarks = sorted(bookmarks)
         self.line_buffer = []
         curses.wrapper(self.__main)
+        print(self.cd_cmd)
 
     def __main(self, screen):
         # curses settings
@@ -40,11 +41,11 @@ class InteractiveSearch:
         self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
 
     def __display_bookmarks(self):
-        filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
+        self.filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
         filter_regex = match_to_regex(''.join(self.line_buffer))
-        self.num_bookmarks = len(filtered_bookmarks)
+        self.num_bookmarks = len(self.filtered_bookmarks)
 
-        for i, bookmark in enumerate(filtered_bookmarks):
+        for i, bookmark in enumerate(self.filtered_bookmarks):
 
             selected = (i == self.selected_line)
             self.__display_bookmark(self.lines - self.num_bookmarks - 1 + i, 0, bookmark, filter_regex, selected)
@@ -83,6 +84,7 @@ class InteractiveSearch:
 
         done = False
         if ch == KEY_ENTER:
+            self.cd_cmd = bash_cd_cmd.format(self.filtered_bookmarks[self.selected_line][1])
             done = True
         elif ch == KEY_BACKSPACE:
             self.selected_line = 0
@@ -127,14 +129,14 @@ class InteractiveSearch:
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
 bash_null_cmd = ':'
-bash_cd_cmd = 'cd "{}"'
+bash_cd_cmd = 'cd "{}";'
 
 def bash_print(string):
     bash_print_cmd = 'printf "{}\\n";'
     print(bash_print_cmd.format(string))
 
 def find(bookmarks, match):
-    print_shortcuts(filter_shortcuts(bookmarks, match))
+    print(bash_cd_cmd.format(filter_shortcuts(bookmarks, match)[0][1]))
 
 def save(bookmarks, bookmark):
     cwd = os.getcwd()
