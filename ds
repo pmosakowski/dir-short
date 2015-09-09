@@ -8,12 +8,13 @@ import os
 import curses
 
 class InteractiveSearch:
-    def __init__(self, bookmarks, none=None):
+    def __init__(self, bookmarks, *arg):
         self.bookmarks = sorted(bookmarks)
         self.line_buffer = []
-        curses.wrapper(self.main)
+        curses.wrapper(self.__main)
 
-    def main(self, screen):
+    def __main(self, screen):
+        # curses settings
         curses.nonl()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -22,13 +23,54 @@ class InteractiveSearch:
 
         done = False
         while not done:
-            self.update_screen()
+            self.__update_screen()
             ch = self.screen.getch()
-            line, done = self.process_key(ch)
+            line, done = self.__process_key(ch)
 
-    def process_key(self, ch):
-        KEY_ENTER = 13
-        KEY_BACKSPACE = 127
+    def __update_screen(self):
+        self.screen.clear()
+
+        self.__display_bookmarks()
+        self.__display_line_buffer()
+
+        self.screen.refresh()
+
+    def __display_line_buffer(self):
+        self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
+
+    def __display_bookmarks(self):
+        filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
+        filter_regex = match_to_regex(''.join(self.line_buffer))
+        num_bookmarks = len(filtered_bookmarks)
+        i = self.lines - num_bookmarks - 1
+        for bookmark in filtered_bookmarks:
+
+            self.__display_bookmark(i, 0, bookmark, filter_regex)
+            i += 1
+
+    def __display_bookmark(self, y, x, bookmark, regex):
+        """Takes a bookmark and a regex object and displays it
+           in curses window, highlighting matched parts"""
+        # tab padding between nickname and directory name
+        padding = 16 - len(bookmark[0])
+        highlight_attribute = curses.color_pair(1)
+
+        self.screen.addstr(y, x, '[{}]{}{}'.format(bookmark[0], ' '*padding, bookmark[1]), curses.color_pair(2))
+
+        # highlight matched parts
+        match_result = regex.match(bookmark[0])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                self.screen.addstr(y, match_result.start(i) + x + 1, match_result.group(i), highlight_attribute)
+
+        match_result = regex.match(bookmark[1])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                self.screen.addstr(y, match_result.start(i) + x + 2 + 16, match_result.group(i), highlight_attribute)
+
+    def __process_key(self, ch):
+        KEY_ENTER = ord('\r')
+        KEY_BACKSPACE = ord('\x7f')
 
         done = False
         if ch == KEY_ENTER:
@@ -59,47 +101,6 @@ class InteractiveSearch:
 
         return allowed
 
-
-    def update_screen(self):
-        self.screen.clear()
-
-        self.display_bookmarks()
-        self.display_line_buffer()
-
-        self.screen.refresh()
-
-    def display_line_buffer(self):
-        self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
-
-    def display_bookmarks(self):
-        filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
-        filter_regex = match_to_regex(''.join(self.line_buffer))
-        num_bookmarks = len(filtered_bookmarks)
-        i = self.lines - num_bookmarks - 1
-        for bookmark in filtered_bookmarks:
-
-            self.__display_bookmark(i, 0, bookmark, filter_regex)
-            i += 1
-
-    def __display_bookmark(self, y, x, bookmark, regex):
-        """Takes a bookmark and a regex object and displays it
-           in curses window, highlighting matched parts"""
-        # tab padding between nickname and directory name
-        padding = 16 - len(bookmark[0])
-        highlight_attribute = curses.color_pair(1)
-
-        self.screen.addstr(y, x, '[{}]{}{}'.format(bookmark[0], ' '*padding, bookmark[1]), curses.color_pair(2))
-
-        # highlight matched parts
-        match_result = regex.match(bookmark[0])
-        if match_result and match_result.lastindex:
-            for i in range(1, match_result.lastindex + 1):
-                self.screen.addstr(y, match_result.start(i) + x + 1, match_result.group(i), highlight_attribute)
-
-        match_result = regex.match(bookmark[1])
-        if match_result and match_result.lastindex:
-            for i in range(1, match_result.lastindex + 1):
-                self.screen.addstr(y, match_result.start(i) + x + 2 + 16, match_result.group(i), highlight_attribute)
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
