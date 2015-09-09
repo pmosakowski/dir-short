@@ -20,6 +20,7 @@ class InteractiveSearch:
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
         self.screen = screen
         self.lines, self.cols = self.screen.getmaxyx()
+        self.selected_line = 0
 
         done = False
         while not done:
@@ -41,43 +42,64 @@ class InteractiveSearch:
     def __display_bookmarks(self):
         filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
         filter_regex = match_to_regex(''.join(self.line_buffer))
-        num_bookmarks = len(filtered_bookmarks)
-        i = self.lines - num_bookmarks - 1
-        for bookmark in filtered_bookmarks:
+        self.num_bookmarks = len(filtered_bookmarks)
 
-            self.__display_bookmark(i, 0, bookmark, filter_regex)
-            i += 1
+        for i, bookmark in enumerate(filtered_bookmarks):
 
-    def __display_bookmark(self, y, x, bookmark, regex):
+            selected = (i == self.selected_line)
+            self.__display_bookmark(self.lines - self.num_bookmarks - 1 + i, 0, bookmark, filter_regex, selected)
+
+    def __display_bookmark(self, y, x, bookmark, regex, selected):
         """Takes a bookmark and a regex object and displays it
            in curses window, highlighting matched parts"""
         # tab padding between nickname and directory name
         padding = 16 - len(bookmark[0])
         highlight_attribute = curses.color_pair(1)
 
-        self.screen.addstr(y, x, '[{}]{}{}'.format(bookmark[0], ' '*padding, bookmark[1]), curses.color_pair(2))
+        if selected:
+            symbol = '> '
+        else:
+            symbol = '  '
+
+        self.screen.addstr(y, x, '{}[{}]{}{}'.format(symbol, bookmark[0], ' '*padding, bookmark[1]))
 
         # highlight matched parts
         match_result = regex.match(bookmark[0])
         if match_result and match_result.lastindex:
             for i in range(1, match_result.lastindex + 1):
-                self.screen.addstr(y, match_result.start(i) + x + 1, match_result.group(i), highlight_attribute)
+                self.screen.addstr(y, match_result.start(i) + x + 3, match_result.group(i), highlight_attribute)
 
         match_result = regex.match(bookmark[1])
         if match_result and match_result.lastindex:
             for i in range(1, match_result.lastindex + 1):
-                self.screen.addstr(y, match_result.start(i) + x + 2 + 16, match_result.group(i), highlight_attribute)
+                self.screen.addstr(y, match_result.start(i) + x + 4 + 16, match_result.group(i), highlight_attribute)
 
     def __process_key(self, ch):
         KEY_ENTER = ord('\r')
         KEY_BACKSPACE = ord('\x7f')
+        KEY_UP = curses.KEY_UP
+        KEY_DOWN = curses.KEY_DOWN
+        KEY_TAB = ord('\t')
 
         done = False
         if ch == KEY_ENTER:
             done = True
         elif ch == KEY_BACKSPACE:
+            self.selected_line = 0
             del self.line_buffer[-1]
+        elif ch == KEY_UP:
+            if self.selected_line > 0:
+                self.selected_line -= 1
+        elif ch == KEY_DOWN:
+            if self.selected_line < self.num_bookmarks - 1:
+                self.selected_line += 1
+        elif ch == KEY_TAB:
+            if self.selected_line < self.num_bookmarks - 1:
+                self.selected_line += 1
+            else:
+                self.selected_line = 0
         elif self.char_allowed(ch):
+            self.selected_line = 0
             self.line_buffer.append(chr(ch))
 
         return self.line_buffer, done
