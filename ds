@@ -15,6 +15,8 @@ class InteractiveSearch:
 
     def main(self, screen):
         curses.nonl()
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
         self.screen = screen
         self.lines, self.cols = self.screen.getmaxyx()
 
@@ -71,16 +73,33 @@ class InteractiveSearch:
 
     def display_bookmarks(self):
         filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
+        filter_regex = match_to_regex(''.join(self.line_buffer))
         num_bookmarks = len(filtered_bookmarks)
         i = self.lines - num_bookmarks - 1
         for bookmark in filtered_bookmarks:
-            if len(bookmark[0]) < 8:
-                tabs = 2
-            else:
-                tabs = 1
 
-            self.screen.addstr(i, 0, '[{}]{}{}'.format(bookmark[0], '\t'*tabs, bookmark[1]))
+            self.__display_bookmark(i, 0, bookmark, filter_regex)
             i += 1
+
+    def __display_bookmark(self, y, x, bookmark, regex):
+        """Takes a bookmark and a regex object and displays it
+           in curses window, highlighting matched parts"""
+        # tab padding between nickname and directory name
+        padding = 16 - len(bookmark[0])
+        highlight_attribute = curses.color_pair(1)
+
+        self.screen.addstr(y, x, '[{}]{}{}'.format(bookmark[0], ' '*padding, bookmark[1]), curses.color_pair(2))
+
+        # highlight matched parts
+        match_result = regex.match(bookmark[0])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                self.screen.addstr(y, match_result.start(i) + x + 1, match_result.group(i), highlight_attribute)
+
+        match_result = regex.match(bookmark[1])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                self.screen.addstr(y, match_result.start(i) + x + 2 + 16, match_result.group(i), highlight_attribute)
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
 delimiter = ':'
@@ -155,7 +174,7 @@ def bookmark_directory(bookmarks, directory, nickname=''):
 def match_to_regex(match):
     """Convert matcher string into a regex. It matches any group of
        characters in place of whitespace"""
-    match_groups = match.split()
+    match_groups = [r'({})'.format(x) for x in match.split()]
     match_string = r'.*'.join(match_groups)
     return re.compile(r'^.*{}.*$'.format(match_string))
 
