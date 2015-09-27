@@ -3,31 +3,44 @@
 import argparse
 import csv
 import re
-import os
+import os, sys
+
+from time import sleep
 
 import curses
+
+from curtsies.window import FullscreenWindow as Window
+from curtsies import FSArray, fsarray
 
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
         self.bookmarks = sorted(bookmarks)
         self.line_buffer = []
-        curses.wrapper(self.__main)
-        print(self.cd_cmd)
+        self.main_loop(bookmarks)
+        #print(self.cd_cmd)
+        print("cd /home/shared")
 
-    def __main(self, screen):
-        # curses settings
-        curses.nonl()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        self.screen = screen
-        self.lines, self.cols = self.screen.getmaxyx()
-        self.selected_line = 0
+#    def __main(self, screen):
+#        # curses settings
+#        curses.nonl()
+#        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+#        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+#        self.screen = screen
+#        self.lines, self.cols = self.screen.getmaxyx()
+#        self.selected_line = 0
+#
+#        done = False
+#        while not done:
+#            self.__update_screen()
+#            ch = self.screen.getch()
+#            line, done = self.__process_key(ch)
 
-        done = False
-        while not done:
-            self.__update_screen()
-            ch = self.screen.getch()
-            line, done = self.__process_key(ch)
+    def main_loop(self, bookmarks):
+        with Window(out_stream=sys.stderr, hide_cursor=False) as window:
+            display = fsarray(['_'*window.width for _ in range(window.height)])
+            for _ in range(10):
+                window.render_to_terminal(display)
+                sleep(1)
 
     def __update_screen(self):
         self.screen.clear()
