@@ -11,11 +11,12 @@ import curses
 
 from curtsies.window import FullscreenWindow as Window
 from curtsies import FSArray, fsarray
+from curtsies.fmtfuncs import bold, yellow, on_dark, on_gray
 
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
         self.bookmarks = sorted(bookmarks)
-        self.line_buffer = []
+        self.line_buffer = 'HAHAHAHHAHAHA'
         self.main_loop(bookmarks)
         #print(self.cd_cmd)
         print("cd /home/shared")
@@ -37,9 +38,9 @@ class InteractiveSearch:
 
     def main_loop(self, bookmarks):
         with Window(out_stream=sys.stderr, hide_cursor=False) as window:
-            display = fsarray(['_'*window.width for _ in range(window.height)])
+            display = fsarray([on_dark(on_gray(' '))*window.width for _ in range(window.height)])
             for _ in range(10):
-                window.render_to_terminal(display)
+                window.render_to_terminal(self.__display_line_buffer(display))
                 sleep(1)
 
     def __update_screen(self):
@@ -50,8 +51,10 @@ class InteractiveSearch:
 
         self.screen.refresh()
 
-    def __display_line_buffer(self):
-        self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
+    def __display_line_buffer(self, display):
+        display[display.height-1, 0:len(self.line_buffer)] = fsarray([bold(yellow(self.line_buffer))])
+        return display
+#        self.screen.addstr(self.lines - 1, 0, ''.join(self.line_buffer))
 
     def __display_bookmarks(self):
         self.filtered_bookmarks = filter_shortcuts(self.bookmarks, ''.join(self.line_buffer))
