@@ -177,7 +177,11 @@ def bash_print(string):
     print(bash_print_cmd.format(string))
 
 def find(bookmarks, match):
-    print(bash_cd_cmd.format(filter_shortcuts(bookmarks, match)[0][1]))
+    try:
+        dirname = filter_shortcuts(bookmarks, match)[0][1]
+        print(bash_cd_cmd.format(dirname))
+    except:
+        print(bash_null_cmd)
 
 def save(bookmarks, bookmark):
     cwd = os.getcwd()
