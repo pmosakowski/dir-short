@@ -10,13 +10,13 @@ from time import sleep
 import curses
 
 from curtsies.window import FullscreenWindow as Window
-from curtsies import FSArray, fsarray
+from curtsies import Input, FSArray, fsarray
 from curtsies.fmtfuncs import bold, yellow, on_dark, on_gray
 
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
         self.bookmarks = sorted(bookmarks)
-        self.line_buffer = ['f','g','i']
+        self.line_buffer = []
         #self.line_buffer = []
         self.selected_line = 0
         self.main_loop(bookmarks)
@@ -24,13 +24,20 @@ class InteractiveSearch:
         print("cd /home/shared")
 
     def main_loop(self, bookmarks):
-        with Window(out_stream=sys.stderr, hide_cursor=False) as window:
-            display = fsarray([on_dark(on_gray(' '))*window.width for _ in range(window.height)])
+        with Window(out_stream=sys.stderr, hide_cursor=True) as window:
+            clean_display = fsarray([on_dark(on_gray(' '))*window.width for _ in range(window.height)])
+            display = fsarray(clean_display)
+            self.__update_screen(display)
+            window.render_to_terminal(display)
+
             done = False;
             while not done:
-                self.__update_screen(display)
-                window.render_to_terminal(display)
-                sleep(1)
+                with Input(keynames='curtsies') as _:
+                    for e in Input():
+                        display = fsarray(clean_display)
+                        done = self.__process_key(e)
+                        self.__update_screen(display)
+                        window.render_to_terminal(display)
 
     def __update_screen(self, display):
         self.__display_bookmarks(display)
@@ -77,56 +84,68 @@ class InteractiveSearch:
         #    for i in range(1, match_result.lastindex + 1):
         #    self.screen.addstr(y, match_result.start(i) + x + 4 + 16, match_result.group(i), highlight_attribute)
 
-    def __process_key(self, ch):
-        KEY_ENTER = ord('\r')
-        KEY_BACKSPACE = ord('\x7f')
-        KEY_UP = curses.KEY_UP
-        KEY_DOWN = curses.KEY_DOWN
-        KEY_TAB = ord('\t')
+    def __process_key(self, event):
+        print(event)
+        KEY_ENTER = '<Ctrl-j>'
+        KEY_PADENTER = '<PADENTER>'
+        KEY_ESCAPE = '<ESC>'
+        KEY_BACKSPACE = '<BACKSPACE>'
+        KEY_UP = '<UP>'
+        KEY_DOWN = '<DOWN>'
+        KEY_TAB = '<TAB>'
 
         done = False
-        if ch == KEY_ENTER:
+        if event == KEY_ENTER or event == KEY_PADENTER:
             self.cd_cmd = bash_cd_cmd.format(self.filtered_bookmarks[self.selected_line][1])
             done = True
-        elif ch == KEY_BACKSPACE:
+        elif event == KEY_BACKSPACE:
             self.selected_line = 0
             if len(self.line_buffer) > 0:
                 del self.line_buffer[-1]
-        elif ch == KEY_UP:
+        elif event == KEY_UP:
             if self.selected_line > 0:
                 self.selected_line -= 1
-        elif ch == KEY_DOWN:
+        elif event == KEY_DOWN:
             if self.selected_line < self.num_bookmarks - 1:
                 self.selected_line += 1
-        elif ch == KEY_TAB:
+        elif event == KEY_TAB:
             if self.selected_line < self.num_bookmarks - 1:
                 self.selected_line += 1
             else:
                 self.selected_line = 0
-        elif self.char_allowed(ch):
-            self.selected_line = 0
-            self.line_buffer.append(chr(ch))
+        else:
+            allowed, ch = self.char_allowed(event)
+            if allowed:
+                self.line_buffer.append(ch)
+                self.selected_line = 0
 
-        return self.line_buffer, done
+        return done
 
     @staticmethod
-    def char_allowed(ch):
+    def char_allowed(event):
         allowed = False
 
-        if ch >= 65 and ch<= 90:
-            # uppercase letters
-            allowed = True
-        elif ch >= 97 and ch <= 122:
-            # lowercase letters
-            allowed = True
-        elif ch >= 48 and ch <= 57:
-            # digits
-            allowed = True
-        elif ch == 32 or ch == 45 or ch == 95:
-            # dash, space or underscore
-            allowed = True
+        if(len(event) == 1):
+            ch = ord(event)
 
-        return allowed
+            if ch >= 65 and ch<= 90:
+                # uppercase letters
+                allowed = True
+            elif ch >= 97 and ch <= 122:
+                # lowercase letters
+                allowed = True
+            elif ch >= 48 and ch <= 57:
+                # digits
+                allowed = True
+            elif ch == 45 or ch == 95:
+                # dash or underscore
+                allowed = True
+        else:
+            if event == '<SPACE>':
+                ch = 32
+                allowed = True
+
+        return allowed, chr(ch)
 
 
 bookmark_path = os.path.join(os.environ['HOME'],".dir-short.bookmarks")
