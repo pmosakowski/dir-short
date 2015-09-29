@@ -93,8 +93,7 @@ class InteractiveSearch:
         display[y, :len(bookmark_line)] = [bookmark_line]
 
     def __process_key(self, event):
-        KEY_ENTER = '<Ctrl-j>'
-        KEY_PADENTER = '<PADENTER>'
+        KEY_ENTER = ['<Ctrl-j>', '<PADENTER>']
         KEY_ESCAPE = '<ESC>'
         KEY_BACKSPACE = '<BACKSPACE>'
         KEY_UP = ['<UP>', '<Ctrl-UP>']
@@ -106,8 +105,13 @@ class InteractiveSearch:
         if type(event) == PasteEvent:
             event = event.events[0]
 
-        if event == KEY_ENTER or event == KEY_PADENTER:
-            self.cd_cmd = bash_cd_cmd.format(self.filtered_bookmarks[self.selected_line][1])
+        if event in KEY_ENTER:
+            try:
+                dirname = self.filtered_bookmarks[self.selected_line][1]
+                self.cd_cmd = bash_cd_cmd.format(dirname)
+            except:
+                self.cd_cmd = bash_null_cmd
+
             done = True
         elif event == KEY_ESCAPE:
             self.cd_cmd = bash_null_cmd
