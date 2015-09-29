@@ -11,11 +11,12 @@ import curses
 
 from curtsies.window import FullscreenWindow as Window
 from curtsies.events import PasteEvent
-from curtsies import Input, FSArray, fsarray
-from curtsies.fmtfuncs import bold, yellow, on_dark, on_gray
+from curtsies import Input, fmtstr, fsarray
+from curtsies.fmtfuncs import *
 
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
+        self.bg = lambda x: on_dark(on_gray(x))
         self.bookmarks = sorted(bookmarks)
         self.line_buffer = []
         self.selected_line = 0
@@ -24,7 +25,7 @@ class InteractiveSearch:
 
     def main_loop(self, bookmarks):
         with Window(out_stream=sys.stderr, hide_cursor=True) as window:
-            clean_display = fsarray([on_dark(on_gray(' '))*window.width for _ in range(window.height)])
+            clean_display = fsarray([self.bg(' ')*window.width for _ in range(window.height)])
             display = fsarray(clean_display)
             self.__update_screen(display)
             window.render_to_terminal(display)
@@ -64,26 +65,31 @@ class InteractiveSearch:
            in curses window, highlighting matched parts"""
         # tab padding between nickname and directory name
         padding = 16 - len(bookmark[0])
-        #highlight_attribute = curses.color_pair(1)
+        highlight = lambda x: dark(gray(on_red(x)))
 
         if selected:
             symbol = '> '
         else:
             symbol = '  '
 
-        bookmark_line = '{}[{}]{}{}'.format(symbol, bookmark[0], ' '*padding, bookmark[1])
-        display[y, :len(bookmark_line)] = [on_dark(on_gray(bookmark_line))]
+        bookmark_line = self.bg('{}[{}]{}{}'.format(symbol, bookmark[0], ' '*padding, bookmark[1]))
 
         # highlight matched parts
-        #match_result = regex.match(bookmark[0])
-        #if match_result and match_result.lastindex:
-        #    for i in range(1, match_result.lastindex + 1):
-        #        self.screen.addstr(y, match_result.start(i) + x + 3, match_result.group(i), highlight_attribute)
+        match_result = regex.match(bookmark[0])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                start = match_result.start(i) + x + 3
+                end = start + len(match_result.group(i))
+                bookmark_line = bookmark_line.splice(highlight(match_result.group(i)), start, end)
 
-        #match_result = regex.match(bookmark[1])
-        #if match_result and match_result.lastindex:
-        #    for i in range(1, match_result.lastindex + 1):
-        #    self.screen.addstr(y, match_result.start(i) + x + 4 + 16, match_result.group(i), highlight_attribute)
+        match_result = regex.match(bookmark[1])
+        if match_result and match_result.lastindex:
+            for i in range(1, match_result.lastindex + 1):
+                start = match_result.start(i) + x + 4 + 16
+                end = start + len(match_result.group(i))
+                bookmark_line = bookmark_line.splice(highlight(match_result.group(i)), start, end)
+
+        display[y, :len(bookmark_line)] = [bookmark_line]
 
     def __process_key(self, event):
         KEY_ENTER = '<Ctrl-j>'
