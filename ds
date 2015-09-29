@@ -17,9 +17,10 @@ from curtsies.fmtfuncs import *
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
         self.bg = lambda x: on_dark(on_gray(x))
-        self.bookmarks = sorted(bookmarks)
         self.line_buffer = []
         self.selected_line = 0
+
+        self.bookmarks = sorted(bookmarks)
         self.main_loop(bookmarks)
         print(self.cd_cmd)
 
@@ -107,6 +108,9 @@ class InteractiveSearch:
 
         if event == KEY_ENTER or event == KEY_PADENTER:
             self.cd_cmd = bash_cd_cmd.format(self.filtered_bookmarks[self.selected_line][1])
+            done = True
+        elif event == KEY_ESCAPE:
+            self.cd_cmd = bash_null_cmd
             done = True
         elif event == KEY_BACKSPACE:
             self.selected_line = 0
