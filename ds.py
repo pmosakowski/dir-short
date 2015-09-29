@@ -17,6 +17,7 @@ from curtsies.fmtfuncs import *
 class InteractiveSearch:
     def __init__(self, bookmarks, *arg):
         self.bg = lambda x: on_dark(on_gray(x))
+        self.cmdline = lambda x: bold(yellow(self.bg(x)))
         self.line_buffer = []
         self.selected_line = 0
 
@@ -48,7 +49,7 @@ class InteractiveSearch:
 
     def __display_line_buffer(self, display):
         input_line = ''.join(self.line_buffer)
-        display[display.height-1, :len(input_line)] = [bold(yellow(''.join(input_line)))]
+        display[display.height-1, :len(input_line)] = [self.cmdline(''.join(input_line))]
         return display
 
     def __display_bookmarks(self, display):
